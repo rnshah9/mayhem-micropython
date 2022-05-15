@@ -1,0 +1,8 @@
+project: rnshah9/mayhem-micropython
+target: playground
+tests: null
+
+cmds:
+  - cmd: /repo/ports/unix/micropython @@
+    filepath: /test.py
+    libfuzzer: false
