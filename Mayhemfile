@@ -1,5 +1,5 @@
 project: rnshah9/mayhem-micropython
-target: playground
+target: micropython
 tests: null
 
 cmds:
