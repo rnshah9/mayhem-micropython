@@ -1,8 +1,7 @@
-project: rnshah9/mayhem-micropython
+project: micropython
 target: micropython
-tests: null
 
 cmds:
-  - cmd: /repo/ports/unix/micropython @@
+  - cmd: /repo/ports/unix/micropython /test.py
     filepath: /test.py
     libfuzzer: false
