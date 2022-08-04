@@ -28,8 +28,8 @@
 
 // Current version of MicroPython
 #define MICROPY_VERSION_MAJOR 1
-#define MICROPY_VERSION_MINOR 18
-#define MICROPY_VERSION_MICRO 0
+#define MICROPY_VERSION_MINOR 19
+#define MICROPY_VERSION_MICRO 1
 
 // Combined version as a 32-bit number for convenience
 #define MICROPY_VERSION ( \
@@ -361,11 +361,6 @@
 #define MICROPY_EMIT_INLINE_THUMB (0)
 #endif
 
-// Whether to enable ARMv7-M instruction support in the Thumb2 inline assembler
-#ifndef MICROPY_EMIT_INLINE_THUMB_ARMV7M
-#define MICROPY_EMIT_INLINE_THUMB_ARMV7M (1)
-#endif
-
 // Whether to enable float support in the Thumb2 inline assembler
 #ifndef MICROPY_EMIT_INLINE_THUMB_FLOAT
 #define MICROPY_EMIT_INLINE_THUMB_FLOAT (1)
@@ -394,8 +389,10 @@
 // Convenience definition for whether any native emitter is enabled
 #define MICROPY_EMIT_NATIVE (MICROPY_EMIT_X64 || MICROPY_EMIT_X86 || MICROPY_EMIT_THUMB || MICROPY_EMIT_ARM || MICROPY_EMIT_XTENSA || MICROPY_EMIT_XTENSAWIN)
 
-// Select prelude-as-bytes-object for certain emitters
-#define MICROPY_EMIT_NATIVE_PRELUDE_AS_BYTES_OBJ (MICROPY_EMIT_XTENSAWIN)
+// Some architectures cannot read byte-wise from executable memory.  In this case
+// the prelude for a native function (which usually sits after the machine code)
+// must be separated and placed somewhere where it can be read byte-wise.
+#define MICROPY_EMIT_NATIVE_PRELUDE_SEPARATE_FROM_MACHINE_CODE (MICROPY_EMIT_XTENSAWIN)
 
 // Convenience definition for whether any inline assembler emitter is enabled
 #define MICROPY_EMIT_INLINE_ASM (MICROPY_EMIT_INLINE_THUMB || MICROPY_EMIT_INLINE_XTENSA)
@@ -427,13 +424,6 @@
 // This will disable the ability to execute native/viper code
 #ifndef MICROPY_DYNAMIC_COMPILER
 #define MICROPY_DYNAMIC_COMPILER (0)
-#endif
-
-// Configure dynamic compiler macros
-#if MICROPY_DYNAMIC_COMPILER
-#define MICROPY_PY_BUILTINS_STR_UNICODE_DYNAMIC (mp_dynamic_compiler.py_builtins_str_unicode)
-#else
-#define MICROPY_PY_BUILTINS_STR_UNICODE_DYNAMIC MICROPY_PY_BUILTINS_STR_UNICODE
 #endif
 
 // Whether to enable constant folding; eg 1+2 rewritten as 3
@@ -616,6 +606,11 @@
 #define MICROPY_ENABLE_GC (0)
 #endif
 
+// Whether the garbage-collected heap can be split over multiple memory areas.
+#ifndef MICROPY_GC_SPLIT_HEAP
+#define MICROPY_GC_SPLIT_HEAP (0)
+#endif
+
 // Hook to run code during time consuming garbage collector operations
 #ifndef MICROPY_GC_HOOK_LOOP
 #define MICROPY_GC_HOOK_LOOP
@@ -707,6 +702,11 @@
 // Whether port requires event-driven REPL functions
 #ifndef MICROPY_REPL_EVENT_DRIVEN
 #define MICROPY_REPL_EVENT_DRIVEN (0)
+#endif
+
+// The number of items to keep in the readline history.
+#ifndef MICROPY_READLINE_HISTORY_SIZE
+#define MICROPY_READLINE_HISTORY_SIZE (8)
 #endif
 
 // Whether to include lexer helper function for unix
@@ -1595,6 +1595,11 @@ typedef double mp_float_t;
 #define MICROPY_PY_MACHINE_I2C (0)
 #endif
 
+// Whether the low-level I2C transfer function supports a separate write as the first transfer
+#ifndef MICROPY_PY_MACHINE_I2C_TRANSFER_WRITE1
+#define MICROPY_PY_MACHINE_I2C_TRANSFER_WRITE1 (0)
+#endif
+
 // Whether to provide the "machine.SoftI2C" class
 #ifndef MICROPY_PY_MACHINE_SOFTI2C
 #define MICROPY_PY_MACHINE_SOFTI2C (0)
@@ -1654,19 +1659,9 @@ typedef double mp_float_t;
 #define MICROPY_PORT_EXTRA_BUILTINS
 #endif
 
-// Additional builtin module definitions - see objmodule.c:mp_builtin_module_table for format.
-#ifndef MICROPY_PORT_BUILTIN_MODULES
-#define MICROPY_PORT_BUILTIN_MODULES
-#endif
-
 // Additional constant definitions for the compiler - see compile.c:mp_constants_table.
 #ifndef MICROPY_PORT_CONSTANTS
 #define MICROPY_PORT_CONSTANTS
-#endif
-
-// Any root pointers for GC scanning - see mpstate.c
-#ifndef MICROPY_PORT_ROOT_POINTERS
-#define MICROPY_PORT_ROOT_POINTERS
 #endif
 
 /*****************************************************************************/
