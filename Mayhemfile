@@ -1,6 +1,0 @@
-project: micropython
-target: micropython
-
-cmds:
-  - cmd: /install/usr/local/bin/micropython @@
-    libfuzzer: false

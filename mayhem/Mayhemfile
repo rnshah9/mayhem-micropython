@@ -1,6 +1,6 @@
 project: micropython
-target: micropython
+target: qstr-compute-hash
 
 cmds:
-  - cmd: /install/usr/local/bin/micropython @@
-    libfuzzer: false
+  - cmd: /fuzz_qstr_compute_hash
+image: ghcr.io/rnshah9/playground:mayhem-micropython
